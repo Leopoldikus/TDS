@@ -97,3 +97,4 @@ Build/**
 # Иногда встречается в старых шаблонах UE
 **/*.generated.h
 **/*.generated.cpp_backup/
+!Content/Map/TopDownExampleMap_BuiltData.uasset
