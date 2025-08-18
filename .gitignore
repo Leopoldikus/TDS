@@ -1,0 +1,99 @@
+# OS/Tools мусор
+############################
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+############################
+# IDE/Project генерация
+############################
+.vs/
+.vscode/
+.idea/
+*.sln
+*.suo
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+# Rider caches
+*.DotSettings.user
+
+############################
+# C++ артефакты компиляции
+############################
+*.d
+*.o
+*.obj
+*.lo
+*.slo
+*.gch
+*.pch
+*.so
+*.dylib
+*.dll
+*.a
+*.la
+*.lai
+*.lib
+*.exe
+*.out
+*.app
+# MSVC отладочные/линковочные (в UE часто в Binaries, но дублируем на всякий)
+*.pdb
+*.ipdb
+*.iobj
+*.ilk
+*.tlog
+*.lastbuildstate
+*.rsp
+
+############################
+# Unreal Engine
+############################
+# Генерация IDE под разные платформы
+*.xcodeproj
+*.xcworkspace
+*.ipa
+
+# Скомпилированные/кэш-папки
+Binaries/**
+DerivedDataCache/**
+Intermediate/**
+Saved/**
+Plugins/**/Binaries/**
+Plugins/**/Intermediate/**
+
+# Ассеты-исходники (исключаем тяжёлые исходники, не нужные на CI)
+SourceArt/**/*.png
+SourceArt/**/*.tga
+
+# BuiltData для карт
+*_BuiltData.uasset
+
+############################
+# Build/ пакеты (игнорируем всё, кроме нужных ресурсов/списков)
+############################
+Build/**
+!Build/**/                    # почему: чтобы можно было вернуть выборочно файлы ниже
+!Build/**/PakBlacklist*.txt   # почему: настройки упаковки полезны в гите
+!Build/**/*.ico               # почему: иконки Windows
+# iOS ресурсы (иконки/сплэши — PNG)
+!Build/IOS/
+!Build/IOS/Resources/
+!Build/IOS/Resources/Graphics/
+!Build/IOS/Resources/Graphics/**/*.png
+# Android ресурсы (иконки — PNG)
+!Build/Android/
+!Build/Android/res/
+!Build/Android/res/**/*.png
+
+############################
+# Дополнительно
+############################
+# Иногда встречается в старых шаблонах UE
+**/*.generated.h
+**/*.generated.cpp
