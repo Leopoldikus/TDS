@@ -96,4 +96,4 @@ Build/**
 ############################
 # Иногда встречается в старых шаблонах UE
 **/*.generated.h
-**/*.generated.cpp
+**/*.generated.cpp_backup/
