@@ -98,3 +98,5 @@ Build/**
 **/*.generated.h
 **/*.generated.cpp_backup/
 !Content/Map/TopDownExampleMap_BuiltData.uasset
+/_backup/TDS_clean/
+/_backup/

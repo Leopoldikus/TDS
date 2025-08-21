@@ -1,31 +1,30 @@
 {
-  "FileVersion": 3,
-  "EngineAssociation": "4.27",
-  "Category": "",
-  "Description": "",
-  "Modules": [
-    {
-      "Name": "TDS",
-      "Type": "Runtime",
-      "LoadingPhase": "Default"
-    }
-  ],
-  "Plugins": [
-    {
-      "Name": "ChaosNiagara",
-      "Enabled": false
-    },
-    {
-      "Name": "Niagara",
-      "Enabled": true
-    },
-    {
-      "Name": "NiagaraExtras",
-      "Enabled": true
-    }
-  ],
-  "TargetPlatforms": [],
-  "AdditionalRootDirectories": [],
-  "AdditionalPluginDirectories": [],
-  "EpicSampleNameHash": ""
+	"FileVersion": 3,
+	"EngineAssociation": "4.27",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "TDS",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "ChaosNiagara",
+			"Enabled": false
+		},
+		{
+			"Name": "Niagara",
+			"Enabled": true
+		},
+		{
+			"Name": "NiagaraExtras",
+			"Enabled": true
+		}
+	]
 }
