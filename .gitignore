@@ -100,3 +100,9 @@ Build/**
 !Content/Map/TopDownExampleMap_BuiltData.uasset
 /_backup/TDS_clean/
 /_backup/
+
+# local backups
+_backup/
+# optional heavy content
+Content/StarterContent/
+
