@@ -18,3 +18,8 @@ ATDSGameMode::ATDSGameMode()
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}*/
 }
+
+void ATDSGameMode::PlayerCharacterDead()
+{
+
+}

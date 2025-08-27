@@ -17,6 +17,6 @@ class TDS_API UTDS_CharacterHealthComponent : public UTDSHealthComponent
 public:
 
 	
-	void RecieveDamage(float Damage) override;
+	void ChangeCurrentHealth(float ChangeValue) override;
 	
 };

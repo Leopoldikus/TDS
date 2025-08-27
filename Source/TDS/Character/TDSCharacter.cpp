@@ -45,6 +45,13 @@ ATDSCharacter::ATDSCharacter()
 	TopDownCameraComponent->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	InventoryComponent = CreateDefaultSubobject<UTDSInventoryComponent>(TEXT("Inventory Component"));
+	CharHealthComponent = CreateDefaultSubobject<UTDS_CharacterHealthComponent>(TEXT("Health Component"));
+
+	if (CharHealthComponent)
+	{
+		CharHealthComponent->OnDead.AddDynamic(this, &ATDSCharacter::CharDead);
+
+	}
 
 	if (InventoryComponent)
 	{
@@ -128,47 +135,50 @@ void ATDSCharacter::InputAttackReleased()
 
 void ATDSCharacter::MovementTick(float DeltaTime)
 {
-	AddMovementInput(FVector(1.0f, 0.0f, 0.0f), AxisX);
-	AddMovementInput(FVector(0.0f, 1.0f, 0.0f), AxisY);
+	if (bIsAlive)
+	{
+		AddMovementInput(FVector(1.0f, 0.0f, 0.0f), AxisX);
+		AddMovementInput(FVector(0.0f, 1.0f, 0.0f), AxisY);
 
-	if (MovementState == EMovementState::SprintRun_State) // Спринт только вперед
-	{
-		FVector myRotationVector = FVector(AxisX, AxisY, 0.0f);
-		FRotator myRotator = myRotationVector.ToOrientationRotator();
-		SetActorRotation((FQuat(myRotator)));
-	}
-	else
-	{
-		APlayerController* myController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-		if (myController)
+		if (MovementState == EMovementState::SprintRun_State) // Спринт только вперед
 		{
-			FHitResult ResultHit;
-			myController->GetHitResultUnderCursor(ECC_GameTraceChannel1, true, ResultHit);
-			float FindRotatorResultYaw = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), ResultHit.Location).Yaw;
-			SetActorRotation(FQuat(FRotator(0.0f, FindRotatorResultYaw, 0.0f)));
-			if (CurrentWeapon)
+			FVector myRotationVector = FVector(AxisX, AxisY, 0.0f);
+			FRotator myRotator = myRotationVector.ToOrientationRotator();
+			SetActorRotation((FQuat(myRotator)));
+		}
+		else
+		{
+			APlayerController* myController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+			if (myController)
 			{
-				FVector Displacement=FVector(0);
-				switch (MovementState)
+				FHitResult ResultHit;
+				myController->GetHitResultUnderCursor(ECC_GameTraceChannel1, true, ResultHit);
+				float FindRotatorResultYaw = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), ResultHit.Location).Yaw;
+				SetActorRotation(FQuat(FRotator(0.0f, FindRotatorResultYaw, 0.0f)));
+				if (CurrentWeapon)
 				{
-				case EMovementState::Aim_State:Displacement = FVector(0.0f, 0.0f, 160.0f);
-					CurrentWeapon->ShouldReduceDispersion = true;
-					break;
-				case EMovementState::AimWalk_State:CurrentWeapon->ShouldReduceDispersion = true;
-					Displacement = FVector(0.0f, 0.0f, 160.0f);
-					break;
-				case EMovementState::Walk_State:Displacement = FVector(0.0f, 0.0f, 120.0f);
-					CurrentWeapon->ShouldReduceDispersion = false;
-					break;
-				case EMovementState::Run_State:Displacement = FVector(0.0f, 0.0f, 120.0f);
-					CurrentWeapon->ShouldReduceDispersion = false;
-					break;
-				case EMovementState::SprintRun_State:break;
+					FVector Displacement = FVector(0);
+					switch (MovementState)
+					{
+					case EMovementState::Aim_State:Displacement = FVector(0.0f, 0.0f, 160.0f);
+						CurrentWeapon->ShouldReduceDispersion = true;
+						break;
+					case EMovementState::AimWalk_State:CurrentWeapon->ShouldReduceDispersion = true;
+						Displacement = FVector(0.0f, 0.0f, 160.0f);
+						break;
+					case EMovementState::Walk_State:Displacement = FVector(0.0f, 0.0f, 120.0f);
+						CurrentWeapon->ShouldReduceDispersion = false;
+						break;
+					case EMovementState::Run_State:Displacement = FVector(0.0f, 0.0f, 120.0f);
+						CurrentWeapon->ShouldReduceDispersion = false;
+						break;
+					case EMovementState::SprintRun_State:break;
 
-				default:
-					break;
+					default:
+						break;
+					}
+					CurrentWeapon->ShootEndLocation = ResultHit.Location + Displacement;
 				}
-				CurrentWeapon->ShootEndLocation = ResultHit.Location + Displacement;
 			}
 		}
 	}
@@ -429,6 +439,43 @@ void ATDSCharacter::TrySwitchPreviosWeapon()
 			}
 		}
 	}
+}
+
+float ATDSCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	if (bIsAlive)
+	{
+		CharHealthComponent->ChangeCurrentHealth(-DamageAmount);
+	}
+	return ActualDamage;
+}
+
+void ATDSCharacter::CharDead()
+{
+	float TimeAnim = 0.0f;
+	int32 rnd = FMath::RandHelper(DeadsAnim.Num());
+	if (DeadsAnim.IsValidIndex(rnd) && DeadsAnim[rnd] && GetMesh() && GetMesh()->GetAnimInstance())
+	{
+		TimeAnim = DeadsAnim[rnd]->GetPlayLength();
+		GetMesh()->GetAnimInstance()->Montage_Play(DeadsAnim[rnd]);
+	}
+	bIsAlive = false;
+	UnPossessed();
+
+	//Timer Ragdoll
+	GetWorldTimerManager().SetTimer(TimerHandle_RagDollTimer, this, &ATDSCharacter::EnableRagDoll,TimeAnim, false);
+	GetCursorToWorld()->SetVisibility(false);
+}
+
+void ATDSCharacter::EnableRagDoll()
+{
+	if (GetMesh())
+	{
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+		GetMesh()->SetSimulatePhysics(true);
+	}
+
 }
 
 

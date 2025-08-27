@@ -110,3 +110,8 @@ void ATDSPlayerController::OnSetDestinationReleased()
 	// clear flag to indicate we should stop updating the destination
 	bMoveToMouseCursor = false;
 }
+
+void ATDSPlayerController::OnUnPossess()
+{
+	Super::OnUnPossess();
+}

@@ -7,6 +7,7 @@
 #include "TDS/FunctionLibrary/Types.h"
 #include "TDS/WeaponDefault.h"
 #include "TDS/TDSInventoryComponent.h"
+#include "TDS/Character/TDS_CharacterHealthComponent.h"
 #include "TDSCharacter.generated.h"
 
 
@@ -28,6 +29,8 @@ protected:
 public:
 	ATDSCharacter();
 
+	FTimerHandle TimerHandle_RagDollTimer;
+
 	// Called every frame.
 	virtual void Tick(float DeltaSeconds) override;
 
@@ -40,8 +43,11 @@ public:
 	/** Returns CursorToWorld subobject **/
 	//FORCEINLINE class UDecalComponent* GetCursorToWorld() { return CursorToWorld; }
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
 	class UTDSInventoryComponent* InventoryComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Health, meta = (AllowPrivateAccess = "true"))
+	class UTDS_CharacterHealthComponent* CharHealthComponent;
+
 private:
 	/** Top down camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -78,6 +84,11 @@ public:
 		float Stamina = 80.f;
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Movement")
 		float MaxStamina = 100.f;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Health")
+		bool bIsAlive = true;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Health")
+	TArray<UAnimMontage*> DeadsAnim;
+
 
 	//Weapon
 	AWeaponDefault* CurrentWeapon = nullptr;
@@ -142,6 +153,12 @@ public:
 
 	 UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
 	 int32 CurrentIndexWeapon = 0;
+
+	
+	 float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+	 UFUNCTION(BlueprintCallable)
+	 void CharDead();
+	 void EnableRagDoll();
 
 };
 
