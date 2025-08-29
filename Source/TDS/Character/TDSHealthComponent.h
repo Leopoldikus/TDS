@@ -26,10 +26,13 @@ public:
 	// Sets default values for this component's properties
 	UTDSHealthComponent();
 
+
 	UPROPERTY(BlueprintAssignable, EditAnywhere, BlueprintReadWrite, Category = "Health")
 	FOnHealthChange OnHealthChange;
 	UPROPERTY(BlueprintAssignable, EditAnywhere, BlueprintReadWrite, Category = "Health")
 	FOnDead OnDead;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	float CoefDamage = 1.0f;
 
 protected:
 	// Called when the game starts
@@ -47,7 +50,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	void SetCurrentHealth(float NewHealth);
 	UFUNCTION(BlueprintCallable, Category = "Health")
-	virtual void ChangeCurrentHealth(float ChangeValue);
+	virtual void ChangeHealthValue(float ChangeValue);
 	
 
 		
