@@ -8,6 +8,9 @@
 #include "TDS/WeaponDefault.h"
 #include "TDS/TDSInventoryComponent.h"
 #include "TDS/Character/TDS_CharacterHealthComponent.h"
+#include "TDS/Interface/TDS_IGameActor.h"
+#include "TDS/TDS_StateEffect.h"
+
 #include "TDSCharacter.generated.h"
 
 
@@ -19,7 +22,7 @@
 // };
 
 UCLASS(Blueprintable)
-class ATDSCharacter : public ACharacter
+class ATDSCharacter : public ACharacter, public ITDS_IGameActor
 {
 	GENERATED_BODY()
 protected:
@@ -88,14 +91,17 @@ public:
 		bool bIsAlive = true;
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Health")
 	TArray<UAnimMontage*> DeadsAnim;
-
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Ability")
+	TSubclassOf<UTDS_StateEffect> AbilityEffect;
 
 	//Weapon
 	AWeaponDefault* CurrentWeapon = nullptr;
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Demo")
-			
 	UDecalComponent* CurrentCursor = nullptr;
-		
+	
+	//Effect
+	TArray <UTDS_StateEffect*> Effects;
+
 
 	//Inputs
 	UFUNCTION()
@@ -150,9 +156,21 @@ public:
 	 //Inventory Func
 	 void TrySwitchNextWeapon();
 	 void TrySwitchPreviosWeapon();
+	 //Ability func
+	 void TryAbilityEnabled();
+
 
 	 UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
 	 int32 CurrentIndexWeapon = 0;
+
+	 
+	 //Interface
+	 EPhysicalSurface GetSurfuceType() override;
+	TArray<UTDS_StateEffect*> GetAllCurrentEffects() override;
+	void RemoveEffect(UTDS_StateEffect* RemoveEffect) override;
+	void AddEffect(UTDS_StateEffect* newEffect) override;
+	 //End Interface
+
 
 	
 	 float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;

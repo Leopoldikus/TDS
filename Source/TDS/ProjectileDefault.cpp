@@ -89,10 +89,11 @@ void AProjectileDefault::BulletCollisionSphereHit(UPrimitiveComponent* HitComp, 
 		if (ProjectileSetting.HitDecals.Contains(mySurfacetype))
 		{
 			UMaterialInterface* myMaterial = ProjectileSetting.HitDecals[mySurfacetype];
+
 			if (myMaterial && OtherComp)
 			{
 				UGameplayStatics::SpawnDecalAttached(myMaterial, FVector(20.0f), OtherComp, NAME_None, Hit.ImpactPoint, Hit.ImpactNormal.Rotation(),
-					EAttachLocation::KeepWorldPosition, 10.0f);
+				EAttachLocation::KeepWorldPosition, 10.0f);
 			}
 		}
 		if (ProjectileSetting.HitFXs.Contains(mySurfacetype))
@@ -107,14 +108,12 @@ void AProjectileDefault::BulletCollisionSphereHit(UPrimitiveComponent* HitComp, 
 		{
 			UGameplayStatics::PlaySoundAtLocation(GetWorld(), ProjectileSetting.HitSound, Hit.ImpactPoint);
 		}
+		UTypes::AddEffectBySurfaceType(Hit.GetActor(), ProjectileSetting.Effect, mySurfacetype);
 	}
-	UGameplayStatics::ApplyDamage(OtherActor, ProjectileSetting.ProjectileDamage, GetInstigatorController(), this, NULL);
+	UGameplayStatics::ApplyPointDamage(OtherActor, ProjectileSetting.ProjectileDamage, Hit.TraceStart, Hit, GetInstigatorController(), this, NULL);
 	ImpactProjectile();
-	//UGameplayStatics::ApplyRadialDamageWithFalloff()
-	//Apply damage cast to if char like bp?
-	 //OnAnyTakeDmage delegate
-	// UGameplayStatics::ApplyDamage(OtherActor, ProjectileSettings.ProjectileDamage, GetOwner()->GetInstigatorController(), GetOwner(), NULL);
-	////or custom damage by health component
+	
+	
 }
 
 

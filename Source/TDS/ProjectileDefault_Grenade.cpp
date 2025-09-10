@@ -67,7 +67,7 @@ void AProjectileDefault_Grenade::Explose()
 
 	TArray<AActor*> IgnoreActor;
 	UGameplayStatics::ApplyRadialDamageWithFalloff(GetWorld(), ProjectileSetting.ExploseMaxDamage, ProjectileSetting.ExploseMaxDamage * 0.2f,
-		GetActorLocation(), 1000.0f, 2000.0f, 5, NULL, IgnoreActor, nullptr, nullptr);
+		GetActorLocation(), 1000.0f, 2000.0f, 5, NULL, IgnoreActor, this, nullptr);
 
 	this->Destroy();
 }

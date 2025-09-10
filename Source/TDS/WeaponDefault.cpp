@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "TDS/Character/TDSCharacter.h"
 #include "TDSInventoryComponent.h"
+#include "TDS_StateEffect.h"
 
 // Sets default values
 AWeaponDefault::AWeaponDefault()
@@ -308,6 +309,7 @@ void AWeaponDefault::Fire()
 						UGameplayStatics::PlaySoundAtLocation(GetWorld(), WeaponSetting.ProjectileSetting.HitSound, Hit.ImpactPoint);
 					}
 
+					UTDS_StateEffect* NewEffect = NewObject<UTDS_StateEffect>(Hit.GetActor(), FName("Effect"));
 					UGameplayStatics::ApplyDamage(Hit.GetActor(), WeaponSetting.ProjectileSetting.ProjectileDamage, 
 						GetInstigatorController(), this, NULL);
 				}
