@@ -4,7 +4,7 @@
 #include "TDS_IGameActor.h"
 
 // Add default functionality here for any ITDS_IGameActor functions that are not pure virtual.
-EPhysicalSurface ITDS_IGameActor::GetSurfuceType()
+EPhysicalSurface ITDS_IGameActor::GetSurfaceType()
 {
 	return EPhysicalSurface::SurfaceType_Default;
 }
@@ -24,3 +24,16 @@ void ITDS_IGameActor::AddEffect(UTDS_StateEffect* newEffect)
 {
 
 }
+
+/*void ITDS_IGameActor::DropWeaponToWorld(FDropItem DropItem)
+{
+	void DropWeaponToWorld_BP(DropItem);
+
+}
+
+void ITDS_IGameActor::DropWeaponToWorld_BP_Implementation(FDropItem DropItem)
+{
+	//in BP
+}
+*/
+

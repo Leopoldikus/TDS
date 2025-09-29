@@ -16,6 +16,8 @@
 #include "TDS/Game/TDSGameInstance.h"
 #include "TDS/ProjectileDefault.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
+#include "InputCoreTypes.h"
+#include "InputCoreClasses.h"
 
 ATDSCharacter::ATDSCharacter()
 {
@@ -79,7 +81,6 @@ void ATDSCharacter::Tick(float DeltaSeconds)
 			myPC->GetHitResultUnderCursor(ECC_Visibility, true, TraceHitResult);
 			FVector CursorFV = TraceHitResult.ImpactNormal;
 			FRotator CursorR = CursorFV.Rotation();
-
 			CurrentCursor->SetWorldLocation(TraceHitResult.Location);
 			CurrentCursor->SetWorldRotation(CursorR);
 		}
@@ -97,8 +98,6 @@ void ATDSCharacter::BeginPlay()
 	}
 }
 
-
-
 void ATDSCharacter::SetupPlayerInputComponent(UInputComponent* NewInputComponent)
 {
 	Super::SetupPlayerInputComponent(NewInputComponent);
@@ -109,11 +108,37 @@ void ATDSCharacter::SetupPlayerInputComponent(UInputComponent* NewInputComponent
 	NewInputComponent->BindAction(TEXT("FireEvent"), EInputEvent::IE_Released, this, &ATDSCharacter::InputAttackReleased);
 	NewInputComponent->BindAction(TEXT("ReloadEvent"), EInputEvent::IE_Released, this, &ATDSCharacter::TryReloadWeapon);
 
-	NewInputComponent-> BindAction(TEXT("SwitchNextWeapon"), EInputEvent::IE_Pressed, this, &ATDSCharacter::TrySwitchNextWeapon);
-	NewInputComponent->BindAction(TEXT("SwitchPreviousWeapon"), EInputEvent::IE_Pressed, this, &ATDSCharacter::TrySwitchPreviosWeapon);
+	NewInputComponent->BindAction(TEXT("SwitchNextWeapon"), EInputEvent::IE_Pressed, this, &ATDSCharacter::TrySwitchNextWeapon);
+	NewInputComponent->BindAction(TEXT("SwitchPreviousWeapon"), EInputEvent::IE_Pressed, this, &ATDSCharacter::TrySwitchPreviousWeapon);
 	NewInputComponent->BindAction(TEXT("AbilityAction"), EInputEvent::IE_Pressed, this, &ATDSCharacter::TryAbilityEnabled);
+	NewInputComponent->BindAction(TEXT("DropCurrentWeapon"), EInputEvent::IE_Pressed, this, &ATDSCharacter::DropCurrentWeapon);
 
 
+
+	TArray<FKey> HotKeys;
+	HotKeys.Add(EKeys::One);
+	HotKeys.Add(EKeys::Two);
+	HotKeys.Add(EKeys::Three);
+	HotKeys.Add(EKeys::Four);
+	HotKeys.Add(EKeys::Five);
+	HotKeys.Add(EKeys::Six);
+	HotKeys.Add(EKeys::Seven);
+	HotKeys.Add(EKeys::Eight);
+	HotKeys.Add(EKeys::Nine);
+	HotKeys.Add(EKeys::Zero);
+
+	
+	NewInputComponent->BindKey(HotKeys[1], IE_Pressed, this, &ATDSCharacter::TKeyPressed<1>);
+	NewInputComponent->BindKey(HotKeys[2], IE_Pressed, this, &ATDSCharacter::TKeyPressed<2>);
+	NewInputComponent->BindKey(HotKeys[3], IE_Pressed, this, &ATDSCharacter::TKeyPressed<3>);
+	NewInputComponent->BindKey(HotKeys[4], IE_Pressed, this, &ATDSCharacter::TKeyPressed<4>);
+	NewInputComponent->BindKey(HotKeys[5], IE_Pressed, this, &ATDSCharacter::TKeyPressed<5>);
+	NewInputComponent->BindKey(HotKeys[6], IE_Pressed, this, &ATDSCharacter::TKeyPressed<6>);
+	NewInputComponent->BindKey(HotKeys[7], IE_Pressed, this, &ATDSCharacter::TKeyPressed<7>);
+	NewInputComponent->BindKey(HotKeys[8], IE_Pressed, this, &ATDSCharacter::TKeyPressed<8>);
+	NewInputComponent->BindKey(HotKeys[9], IE_Pressed, this, &ATDSCharacter::TKeyPressed<9>);
+	NewInputComponent->BindKey(HotKeys[0], IE_Pressed, this, &ATDSCharacter::TKeyPressed<0>);
+		
 }
 
 void ATDSCharacter::InputAxisY(float Value)
@@ -188,6 +213,21 @@ void ATDSCharacter::MovementTick(float DeltaTime)
 	}
 }
 
+EMovementState ATDSCharacter::GetMovementState()
+{
+	return MovementState;
+}
+
+TArray<UTDS_StateEffect*> ATDSCharacter::GetCurrentEffectsOnChar()
+{
+	return Effects;
+}
+
+int32 ATDSCharacter::GetCurrentWeaponIndex()
+{
+	return CurrentIndexWeapon;
+}
+
 void ATDSCharacter::AttackCharEvent(bool bIsFiring)
 {
 	AWeaponDefault* myWeapon = nullptr;
@@ -223,7 +263,6 @@ void ATDSCharacter::CharacterUpdate()
 	default:
 		break;
 	}
-
 	GetCharacterMovement()->MaxWalkSpeed = ResSpeed;
 }
 
@@ -274,7 +313,7 @@ AWeaponDefault* ATDSCharacter::GetCurrentWeapon()
 	return CurrentWeapon;
 }
 
-void ATDSCharacter::InitWeapon(FName IDWeaponName, FAdditionalWeaponInfo WeaponAdditioanlInfo, int32 NewCurrentIndexWeapon)
+void ATDSCharacter::InitWeapon(FName IdWeaponName, FAdditionalWeaponInfo WeaponAdditioanlInfo, int32 NewCurrentIndexWeapon)
 {
 	if (CurrentWeapon)
 	{
@@ -286,7 +325,7 @@ void ATDSCharacter::InitWeapon(FName IDWeaponName, FAdditionalWeaponInfo WeaponA
 	FWeaponInfo myWeaponInfo;
 	if (myGI)
 	{
-		if (myGI->GetWeaponInfoByName(IDWeaponName, myWeaponInfo))
+		if (myGI->GetWeaponInfoByName(IdWeaponName, myWeaponInfo))
 		{
 			if (myWeaponInfo.WeaponClass)
 			{
@@ -301,20 +340,14 @@ void ATDSCharacter::InitWeapon(FName IDWeaponName, FAdditionalWeaponInfo WeaponA
 				AWeaponDefault* myWeapon = Cast<AWeaponDefault>(GetWorld()->SpawnActor(myWeaponInfo.WeaponClass, &SpawnLocation, &SpawnRotation, SpawnParams));
 				if (myWeapon)
 				{
-					//myWeapon->SetOwner(this);
 					FAttachmentTransformRules Rule(EAttachmentRule::SnapToTarget, false);
 					myWeapon->AttachToComponent(GetMesh(), Rule, FName("WeaponSocketRightHand"));
 					CurrentWeapon = myWeapon;
+					myWeapon->IdWeaponName = IdWeaponName;
 					myWeapon->WeaponSetting = myWeaponInfo;
-					//myWeapon->AdditionalWeaponInfo.Round = myWeaponInfo.MaxRound;
 					myWeapon->ReloadTime = myWeaponInfo.ReloadTime;
 					myWeapon->UpdateStateWeapon(MovementState);
 					myWeapon->AdditionalWeaponInfo = WeaponAdditioanlInfo;
-					//if (InventoryComponent)
-					
-						//CurrentIndexWeapon = InventoryComponent->GetWeaponIndexSlotgByname(IDWeaponName);
-					
-
 					CurrentIndexWeapon = NewCurrentIndexWeapon;
 
 					myWeapon->OnWeaponReloadStart.AddDynamic(this, &ATDSCharacter::WeaponReloadStart);
@@ -327,7 +360,7 @@ void ATDSCharacter::InitWeapon(FName IDWeaponName, FAdditionalWeaponInfo WeaponA
 					}
 					if (InventoryComponent)
 					{
-						InventoryComponent->OnWeaponAmmoAviable.Broadcast(myWeapon->WeaponSetting.WeaponType);
+						InventoryComponent->OnWeaponAmmoAvailable.Broadcast(myWeapon->WeaponSetting.WeaponType);
 					}
 					
 				}
@@ -340,15 +373,11 @@ void ATDSCharacter::InitWeapon(FName IDWeaponName, FAdditionalWeaponInfo WeaponA
 	}
 }
 
-void ATDSCharacter::RemoveCurrentWeapon()
-{
-}
-
 void ATDSCharacter::TryReloadWeapon()
 {
 	if (CurrentWeapon && !CurrentWeapon->WeaponReloading)
 	{
-		if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound &&CurrentWeapon->CheckCanWeaponReload())
+		if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound && CurrentWeapon->CheckCanWeaponReload())
 		{
 			CurrentWeapon->InitReload();
 		}
@@ -368,6 +397,40 @@ void ATDSCharacter::WeaponReloadEnd(bool bIsSuccess, int32 AmmoTake)
 		InventoryComponent->SetAdditionalInfoWeapon(CurrentIndexWeapon, CurrentWeapon->AdditionalWeaponInfo);
 	}
 	WeaponReloadEnd_BP(bIsSuccess);
+}
+
+bool ATDSCharacter::TrySwitchWeaponToIndexByKeyInput(int32 ToIndex)
+{
+	bool bIsSuccess = false;
+	if (CurrentWeapon && !CurrentWeapon->WeaponReloading && InventoryComponent->WeaponSlots.IsValidIndex(ToIndex))
+	{
+		if (CurrentIndexWeapon != ToIndex && InventoryComponent)
+		{
+			int32 OldIndex = CurrentIndexWeapon;
+			FAdditionalWeaponInfo OldInfo;
+			if (CurrentWeapon)
+			{
+				OldInfo = CurrentWeapon->AdditionalWeaponInfo;
+				if (CurrentWeapon->WeaponReloading)
+				{
+					CurrentWeapon->CancelReload();
+				}
+			}
+			bIsSuccess = InventoryComponent->SwitchWeaponByIndex(ToIndex, OldIndex, OldInfo);
+		}
+	}
+	return bIsSuccess;
+
+}
+
+void ATDSCharacter::DropCurrentWeapon()
+{
+	if (InventoryComponent)
+	{
+
+		FDropItem ItemInfo;
+		InventoryComponent->DropWeaponByIndex(CurrentIndexWeapon, ItemInfo);
+	}
 }
 
 void ATDSCharacter::WeaponReloadStart_BP_Implementation(UAnimMontage* Anim)
@@ -400,10 +463,13 @@ UDecalComponent* ATDSCharacter::GetCursorToWorld()
 	return CurrentCursor;
 }
 
+
+
 void ATDSCharacter::TrySwitchNextWeapon()
 {
-	if (InventoryComponent->WeaponSlots.Num() > 1)
+	if (CurrentWeapon && !CurrentWeapon->WeaponReloading && InventoryComponent->WeaponSlots.Num() > 1)
 	{
+		//We have more than one weapon go switch
 		int8 OldIndex = CurrentIndexWeapon;
 		FAdditionalWeaponInfo OldInfo;
 		if (CurrentWeapon)
@@ -413,7 +479,7 @@ void ATDSCharacter::TrySwitchNextWeapon()
 			{
 				CurrentWeapon->CancelReload();
 			}
-			if (InventoryComponent->SwitchWeaponToIndex(CurrentIndexWeapon + 1, OldIndex, OldInfo, true))
+			if (InventoryComponent->SwitchWeaponToIndexByNextPreviousIndex(CurrentIndexWeapon + 1, OldIndex, OldInfo, true))
 			{
 
 			}
@@ -421,10 +487,11 @@ void ATDSCharacter::TrySwitchNextWeapon()
 	}
 }
 
-void ATDSCharacter::TrySwitchPreviosWeapon()
+void ATDSCharacter::TrySwitchPreviousWeapon()
 {
-	if (InventoryComponent->WeaponSlots.Num() > 1)
+	if (CurrentWeapon && !CurrentWeapon->WeaponReloading && InventoryComponent->WeaponSlots.Num() > 1)
 	{
+		//We have more than one weapon go switch
 		int8 OldIndex = CurrentIndexWeapon;
 		FAdditionalWeaponInfo OldInfo;
 		if (CurrentWeapon)
@@ -437,7 +504,7 @@ void ATDSCharacter::TrySwitchPreviosWeapon()
 		}
 		if (InventoryComponent)
 		{
-			if (InventoryComponent->SwitchWeaponToIndex(CurrentIndexWeapon - 1, OldIndex, OldInfo, false))
+			if (InventoryComponent->SwitchWeaponToIndexByNextPreviousIndex(CurrentIndexWeapon - 1, OldIndex, OldInfo, false))
 			{
 
 			}
@@ -445,9 +512,9 @@ void ATDSCharacter::TrySwitchPreviosWeapon()
 	}
 }
 
-void ATDSCharacter::TryAbilityEnabled()//ToDo Cooldown
+void ATDSCharacter::TryAbilityEnabled()
 {
-	if (AbilityEffect)
+	if (AbilityEffect)//ToDo Cooldown
 	{
 		UTDS_StateEffect* NewEffect = NewObject<UTDS_StateEffect>(this, AbilityEffect);
 		if (NewEffect)
@@ -458,13 +525,8 @@ void ATDSCharacter::TryAbilityEnabled()//ToDo Cooldown
 
 }
 
-//bool ATDSCharacter::AviableForEffects_Implementation()
-//
-// {
-	//return true;
-//}
 
-EPhysicalSurface ATDSCharacter::GetSurfuceType()
+EPhysicalSurface ATDSCharacter::GetSurfaceType()
 {
 	EPhysicalSurface Result = EPhysicalSurface::SurfaceType_Default;
 	if (CharHealthComponent)
@@ -501,25 +563,6 @@ void ATDSCharacter::AddEffect(UTDS_StateEffect* newEffect)
 	Effects.Add(newEffect);
 }
 
-float ATDSCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
-{
-	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-	if (bIsAlive)
-	{
-		CharHealthComponent->ChangeHealthValue(-DamageAmount);
-	}
-
-	if (DamageEvent.IsOfType(FRadialDamageEvent::ClassID))
-	{
-		AProjectileDefault* myProjectile = Cast<AProjectileDefault>(DamageCauser);
-		if (myProjectile)
-		{
-			UTypes::AddEffectBySurfaceType(this, myProjectile->ProjectileSetting.Effect, GetSurfuceType());
-		}
-	}
-	return ActualDamage;
-}
-
 void ATDSCharacter::CharDead()
 {
 	float TimeAnim = 0.0f;
@@ -533,7 +576,7 @@ void ATDSCharacter::CharDead()
 	UnPossessed();
 
 	//Timer Ragdoll
-	GetWorldTimerManager().SetTimer(TimerHandle_RagDollTimer, this, &ATDSCharacter::EnableRagDoll,TimeAnim, false);
+	GetWorldTimerManager().SetTimer(TimerHandle_RagDollTimer, this, &ATDSCharacter::EnableRagDoll, TimeAnim, false);
 	GetCursorToWorld()->SetVisibility(false);
 }
 
@@ -544,7 +587,28 @@ void ATDSCharacter::EnableRagDoll()
 		GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 		GetMesh()->SetSimulatePhysics(true);
 	}
-
 }
+
+float ATDSCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
+{
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	if (bIsAlive)
+	{
+		CharHealthComponent->ChangeHealthValue(-DamageAmount);
+	}
+
+	if (DamageEvent.IsOfType(FRadialDamageEvent::ClassID))
+	{
+		AProjectileDefault* myProjectile = Cast<AProjectileDefault>(DamageCauser);
+		if (myProjectile)
+		{
+			UTypes::AddEffectBySurfaceType(this, myProjectile->ProjectileSetting.Effect, GetSurfaceType());
+		}
+	}
+	return ActualDamage;
+}
+
+
+
 
 

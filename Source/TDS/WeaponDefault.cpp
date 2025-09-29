@@ -94,7 +94,9 @@ void AWeaponDefault::DispersionTick(float DeltaTime)
 				CurrentDispersion = CurrentDispersion - CurrentDispersionReduction;
 			}
 			else
+			{
 				CurrentDispersion = CurrentDispersion + CurrentDispersionReduction;
+			}
 		}
 		if (CurrentDispersion < CurrentDispersionMin)
 		{
@@ -127,7 +129,9 @@ void AWeaponDefault::ClipDropTick(float DeltaTime)
 				WeaponSetting.ClipDropMesh.CustomMass);
 		}
 		else
+		{
 			DropClipTimer -= DeltaTime;
+		}
 	}
 }
 
@@ -171,8 +175,10 @@ void AWeaponDefault::SetWeaponStateFire(bool bIsFire)
 		WeaponFiring = bIsFire;
 	}
 	else
+	{
 		WeaponFiring = false;
-	    FireTimer = 0.01f;
+		FireTimer = 0.01f;
+	}
 }
 
 bool AWeaponDefault::CheckWeaponCanFire()
@@ -193,7 +199,9 @@ void AWeaponDefault::Fire()
 		AnimToPlay = WeaponSetting.AnimWeaponInfo.AnimCharFireAim;
 	}
 	else
+	{
 		AnimToPlay = WeaponSetting.AnimWeaponInfo.AnimCharFire;
+	}
 
 	if (WeaponSetting.AnimWeaponInfo.AnimWeponFire && SkeletalMeshWeapon
 		&& SkeletalMeshWeapon->GetAnimInstance())
@@ -216,15 +224,10 @@ void AWeaponDefault::Fire()
 	}
 
 	FireTimer = WeaponSetting.RateOfFire;
-	UE_LOG(LogTemp, Warning, TEXT("Before Fire: Round = %d"), AdditionalWeaponInfo.Round);
 	AdditionalWeaponInfo.Round = AdditionalWeaponInfo.Round - 1;
-	UE_LOG(LogTemp, Warning, TEXT("After Fire: Round = %d"), AdditionalWeaponInfo.Round);
-	
 	ChangeDispersionByShot();
 
 	OnWeaponFireStart.Broadcast(AnimToPlay);
-
-	
 
 	UGameplayStatics::SpawnSoundAtLocation(GetWorld(), WeaponSetting.SoundFireWeapon, ShootLocation->GetComponentLocation());
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), WeaponSetting.EffectFireWeapon, ShootLocation->GetComponentTransform());
@@ -242,15 +245,12 @@ void AWeaponDefault::Fire()
 		for (int8 i = 0; i < NumberProjectile; i++)//Shotgun
 		{
 			EndLocation = GetFireEndLocation();
-			
-
 			if (ProjectileInfo.Projectile)
 			{
 				FVector Dir = EndLocation - SpawnLocation;
 				Dir.Normalize();
 				FMatrix myMatrix(Dir, FVector(0, 1, 0), FVector(0, 0, 1), FVector::ZeroVector);
 				SpawnRotation = myMatrix.Rotator();
-				
 				FActorSpawnParameters SpawnParams;
 				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 				SpawnParams.Owner = GetOwner();
@@ -266,16 +266,17 @@ void AWeaponDefault::Fire()
 			{
 				FHitResult Hit;
 				TArray<AActor*> Actors;
-
 				EDrawDebugTrace::Type DebugTrace;
 				if (ShowDebug)
 				{
-					DrawDebugLine(GetWorld(), SpawnLocation, SpawnLocation + ShootLocation->GetForwardVector() * WeaponSetting.DistanceTrace, 
+					DrawDebugLine(GetWorld(), SpawnLocation, SpawnLocation + ShootLocation->GetForwardVector()* WeaponSetting.DistanceTrace, 
 						FColor::Black, false, 5.f, (uint8)'\000', 0.5f);
 					DebugTrace = EDrawDebugTrace::ForDuration;
 				}
 				else
+				{
 					DebugTrace = EDrawDebugTrace::None;
+				}
 
 				UKismetSystemLibrary::LineTraceSingle(GetWorld(), SpawnLocation, EndLocation * WeaponSetting.DistanceTrace,
 					ETraceTypeQuery::TraceTypeQuery4, false, Actors, DebugTrace, Hit, true, FLinearColor::Red, FLinearColor::Green, 5.0f);
@@ -309,11 +310,13 @@ void AWeaponDefault::Fire()
 						UGameplayStatics::PlaySoundAtLocation(GetWorld(), WeaponSetting.ProjectileSetting.HitSound, Hit.ImpactPoint);
 					}
 
-					UTDS_StateEffect* NewEffect = NewObject<UTDS_StateEffect>(Hit.GetActor(), FName("Effect"));
-					UGameplayStatics::ApplyDamage(Hit.GetActor(), WeaponSetting.ProjectileSetting.ProjectileDamage, 
-						GetInstigatorController(), this, NULL);
+					UTypes::AddEffectBySurfaceType(Hit.GetActor(), ProjectileInfo.Effect, mySurfacetype);
+					//UTDS_StateEffect* NewEffect = NewObject<UTDS_StateEffect>(Hit.GetActor(), FName("Effect"));
+					//UGameplayStatics::ApplyDamage(Hit.GetActor(), WeaponSetting.ProjectileSetting.ProjectileDamage, 
+						//GetInstigatorController(), this, NULL);
+					UGameplayStatics::ApplyPointDamage(Hit.GetActor(), WeaponSetting.ProjectileSetting.ProjectileDamage, Hit.TraceStart,
+						Hit, GetInstigatorController(), this, NULL);
 				}
-
 			}
 		}
 	}
@@ -324,25 +327,16 @@ void AWeaponDefault::Fire()
 			InitReload();
 		}
 	}
-	if (ATDSCharacter* TDSChar = Cast<ATDSCharacter>(GetOwner()))
-	{
-		if (UTDSInventoryComponent* MyInv = TDSChar->FindComponentByClass<UTDSInventoryComponent>())
-		{
-			MyInv->SetAdditionalInfoWeapon(TDSChar->CurrentIndexWeapon, AdditionalWeaponInfo);
-			UE_LOG(LogTemp, Warning, TEXT("Inventory Updated with Round = %d"), AdditionalWeaponInfo.Round);
-		}
-	}
 }
 
 void AWeaponDefault::UpdateStateWeapon(EMovementState NewMovementState)
 {
-	//ToDo Dispersion
 	BlockFire = false;
 
 	switch (NewMovementState)
 	{
 	case EMovementState::Aim_State:
-
+		WeaponAiming = true;
 			CurrentDispersionMax = WeaponSetting.DispersionWeapon.Aim_StateDispersionAimMax;
 			CurrentDispersionMin = WeaponSetting.DispersionWeapon.Aim_StateDispersionAimMin;
 			CurrentDispersionRecoil = WeaponSetting.DispersionWeapon.Aim_StateDispersionAimRecoil;
@@ -350,7 +344,7 @@ void AWeaponDefault::UpdateStateWeapon(EMovementState NewMovementState)
 			break;
 
 	case EMovementState::AimWalk_State:
-
+		WeaponAiming = true;
 			CurrentDispersionMax = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimMax;
 			CurrentDispersionMin = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimMin;
 			CurrentDispersionRecoil = WeaponSetting.DispersionWeapon.AimWalk_StateDispersionAimRecoil;
@@ -358,7 +352,7 @@ void AWeaponDefault::UpdateStateWeapon(EMovementState NewMovementState)
 			break;
 
 	case EMovementState::Walk_State:
-
+		WeaponAiming = false;
 			CurrentDispersionMax = WeaponSetting.DispersionWeapon.Walk_StateDispersionAimMax;
 			CurrentDispersionMin = WeaponSetting.DispersionWeapon.Walk_StateDispersionAimMin;
 			CurrentDispersionRecoil = WeaponSetting.DispersionWeapon.Walk_StateDispersionAimRecoil;
@@ -366,7 +360,7 @@ void AWeaponDefault::UpdateStateWeapon(EMovementState NewMovementState)
 			break;
 
 	case EMovementState::Run_State:
-
+		WeaponAiming = false;
 			CurrentDispersionMax = WeaponSetting.DispersionWeapon.Run_StateDispersionAimMax;
 			CurrentDispersionMin = WeaponSetting.DispersionWeapon.Run_StateDispersionAimMin;
 			CurrentDispersionRecoil = WeaponSetting.DispersionWeapon.Run_StateDispersionAimRecoil;
@@ -374,9 +368,9 @@ void AWeaponDefault::UpdateStateWeapon(EMovementState NewMovementState)
 			break;
 
 	case EMovementState::SprintRun_State:
-
+		WeaponAiming = false;
 			BlockFire = true;
-			SetWeaponStateFire(false);//set fire trigger false
+			SetWeaponStateFire(false);
 			//BlockFire
 			break;
 		default:
@@ -409,7 +403,8 @@ FVector AWeaponDefault::GetFireEndLocation() const
 
 	if (tmpV.Size() > SizeVectorToChangeShootDirectionLogic)
 	{
-		EndLocation = ShootLocation->GetComponentLocation() + ApplyDispersionToShoot((ShootLocation->GetComponentLocation() - ShootEndLocation).GetSafeNormal()) * -20000.0f;
+		EndLocation = ShootLocation->GetComponentLocation() + 
+			ApplyDispersionToShoot((ShootLocation->GetComponentLocation() - ShootEndLocation).GetSafeNormal()) * -20000.0f;
 		if (ShowDebug)
 		{
 			DrawDebugCone(GetWorld(), ShootLocation->GetComponentLocation(), -(ShootLocation->GetComponentLocation() - ShootEndLocation),
@@ -456,15 +451,15 @@ void AWeaponDefault::InitReload()
 {
 	WeaponReloading = true;
 	ReloadTimer = WeaponSetting.ReloadTime;
-	//ToDo Anim reload
 	UAnimMontage* AnimToPlay = nullptr;
 	if (WeaponAiming)
 	{
 		AnimToPlay = WeaponSetting.AnimWeaponInfo.AnimCharReloadAim;
 	}
 	else
+	{
 		AnimToPlay = WeaponSetting.AnimWeaponInfo.AnimCharReload;
-
+	}
 	OnWeaponReloadStart.Broadcast(AnimToPlay);
 
 	UAnimMontage* AnimWeaponToPlay = nullptr;
@@ -473,10 +468,10 @@ void AWeaponDefault::InitReload()
 		AnimWeaponToPlay = WeaponSetting.AnimWeaponInfo.AnimWeaponReloadAim;
 	}
 	else
+	{
 		AnimWeaponToPlay = WeaponSetting.AnimWeaponInfo.AnimWeaponReload;
-
-	if (WeaponSetting.AnimWeaponInfo.AnimWeaponReload
-		&& SkeletalMeshWeapon
+	}
+	if (WeaponSetting.AnimWeaponInfo.AnimWeaponReload && SkeletalMeshWeapon
 		&& SkeletalMeshWeapon->GetAnimInstance())
 	{
 		SkeletalMeshWeapon->GetAnimInstance()->Montage_Play(AnimWeaponToPlay);
@@ -510,7 +505,7 @@ void AWeaponDefault::InitReload()
 }*/
 void AWeaponDefault::FinishReload()
 {
-	int8 AviableAmmoFromInventory = GetAviableAmmoForReload();
+	int8 AviableAmmoFromInventory = GetAvailableAmmoForReload();
 	if (AviableAmmoFromInventory <= 0)
 	{
 		WeaponReloading = false;
@@ -556,6 +551,11 @@ bool AWeaponDefault::CheckCanWeaponReload()
 			if (!MyInv->CheckAmmoForWeapon(WeaponSetting.WeaponType, AviableAmmoForWeapon))
 			{
 				result = false;
+				MyInv->OnWeaponHaveRound.Broadcast(MyInv->GetWeaponIndexSlotByname(IdWeaponName));
+			}
+			else
+			{
+				MyInv->OnWeaponHaveRound.Broadcast(MyInv->GetWeaponIndexSlotByname(IdWeaponName));
 			}
 		}
 	}
@@ -578,9 +578,9 @@ bool AWeaponDefault::CheckCanWeaponReload()
 	}
 	return AviableAmmoForWeapon;
 }*/
-int8 AWeaponDefault::GetAviableAmmoForReload()
+int8 AWeaponDefault::GetAvailableAmmoForReload()
 {
-	int8 AviableAmmoForWeapon = 0;
+	int8 AvailableAmmoForWeapon = 0;
 	AActor* OwnerActor = GetOwner();
 
 	if (ensureMsgf(OwnerActor != nullptr, TEXT("[RELOAD] Owner is NULL!")))
@@ -590,48 +590,38 @@ int8 AWeaponDefault::GetAviableAmmoForReload()
 
 		if (MyInv)
 		{
-			MyInv->CheckAmmoForWeapon(WeaponSetting.WeaponType, AviableAmmoForWeapon);
+			MyInv->CheckAmmoForWeapon(WeaponSetting.WeaponType, AvailableAmmoForWeapon);
 		}
 	}
-	return AviableAmmoForWeapon;
+	return AvailableAmmoForWeapon;
 }
 
 
-void AWeaponDefault::InitDropMesh(UStaticMesh* DropMesh, FTransform Offset, FVector DropImpulseDirection, float LifeTimeMesh, float ImpulseRandomDispersion, float PowerImpulse, float CustomMass)
+void AWeaponDefault::InitDropMesh(UStaticMesh* DropMesh, FTransform Offset, FVector DropImpulseDirection, float LifeTimeMesh, 
+	float ImpulseRandomDispersion, float PowerImpulse, float CustomMass)
 {
 	if (DropMesh)
 	{
 		FTransform Transform;
-
 		FVector LocalDir = this->GetActorForwardVector() * Offset.GetLocation().X + this->GetActorRightVector() * Offset.GetLocation().Y + this->GetActorUpVector() * Offset.GetLocation().Z;
-
 		Transform.SetLocation(GetActorLocation() + LocalDir);
 		Transform.SetScale3D(Offset.GetScale3D());
-
 		Transform.SetRotation((GetActorRotation() + Offset.Rotator()).Quaternion());
 		AStaticMeshActor* NewActor = nullptr;
-
-
 		FActorSpawnParameters Param;
 		Param.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 		Param.Owner = this;
 		NewActor = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), Transform, Param);
-
 		if (NewActor && NewActor->GetStaticMeshComponent())
 		{
 			NewActor->GetStaticMeshComponent()->SetCollisionProfileName(TEXT("IgnoreOnlyPawn"));
 			NewActor->GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-
 			//set parameter for new actor
 			NewActor->SetActorTickEnabled(false);
 			NewActor->InitialLifeSpan = LifeTimeMesh;
-
 			NewActor->GetStaticMeshComponent()->Mobility = EComponentMobility::Movable;
 			NewActor->GetStaticMeshComponent()->SetSimulatePhysics(true);
 			NewActor->GetStaticMeshComponent()->SetStaticMesh(DropMesh);
-			//NewActor->GetStaticMeshComponent()->SetCollisionObjectType()
-
-
 
 			NewActor->GetStaticMeshComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECollisionResponse::ECR_Ignore);
 			NewActor->GetStaticMeshComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECollisionResponse::ECR_Ignore);
@@ -639,8 +629,6 @@ void AWeaponDefault::InitDropMesh(UStaticMesh* DropMesh, FTransform Offset, FVec
 			NewActor->GetStaticMeshComponent()->SetCollisionResponseToChannel(ECC_WorldStatic, ECollisionResponse::ECR_Block);
 			NewActor->GetStaticMeshComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECollisionResponse::ECR_Block);
 			NewActor->GetStaticMeshComponent()->SetCollisionResponseToChannel(ECC_PhysicsBody, ECollisionResponse::ECR_Block);
-
-
 
 			if (CustomMass > 0.0f)
 			{

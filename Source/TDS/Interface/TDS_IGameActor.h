@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "TDS/TDS_StateEffect.h"
+#include "TDS/FunctionLibrary/Types.h"
 #include "TDS_IGameActor.generated.h"
 
 // This class does not need to be modified.
@@ -24,14 +25,22 @@ class TDS_API ITDS_IGameActor
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 
-	//UFUNCTION(BlueprintCallable,BlueprintImplementableEvent,Category = "Event")
-	//	void AviableForEffectsBP();
-	//UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Event")
-	//bool AviableForEffects();	
+	
 
-	virtual EPhysicalSurface GetSurfuceType();
-
+	virtual EPhysicalSurface GetSurfaceType();
 	virtual TArray<UTDS_StateEffect*> GetAllCurrentEffects();
 	virtual void RemoveEffect(UTDS_StateEffect* RemoveEffect);
 	virtual void AddEffect(UTDS_StateEffect* newEffect);
+
+	//inv
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void DropWeaponToWorld(FDropItem DropItem);
+
+	//UFUNCTION(BlueprintNativeEvent)
+	//void DropWeaponToWorld_BP(FDropItem DropItem);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void DropAmmoToWorld(EWeaponType TypeAmmo, int32 Cout);
+	
+
 };

@@ -27,7 +27,7 @@ void ATDS_EnvironmentStructure::Tick(float DeltaTime)
 
 }
 
-EPhysicalSurface ATDS_EnvironmentStructure::GetSurfuceType()
+EPhysicalSurface ATDS_EnvironmentStructure::GetSurfaceType()
 {
 	EPhysicalSurface Result = EPhysicalSurface::SurfaceType_Default;
 	UStaticMeshComponent* myMesh = Cast<UStaticMeshComponent>(GetComponentByClass(UStaticMeshComponent::StaticClass()));

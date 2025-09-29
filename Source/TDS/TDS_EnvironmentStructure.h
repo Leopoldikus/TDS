@@ -26,7 +26,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 
-	EPhysicalSurface GetSurfuceType() override;
+	EPhysicalSurface GetSurfaceType() override;
 
 	TArray<UTDS_StateEffect*> GetAllCurrentEffects() override;
 	void RemoveEffect(UTDS_StateEffect* RemoveEffect)override;

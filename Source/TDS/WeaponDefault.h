@@ -44,7 +44,8 @@ public:
 	FWeaponInfo WeaponSetting;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
 	FAdditionalWeaponInfo AdditionalWeaponInfo;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Info")
+	FName IdWeaponName;
 
 protected:
 	// Called when the game starts or when spawned
@@ -117,7 +118,7 @@ public:
 	void CancelReload();
 	bool CheckCanWeaponReload();
 	
-	int8 GetAviableAmmoForReload();
+	int8 GetAvailableAmmoForReload();
 	
 
 	UFUNCTION()
