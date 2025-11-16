@@ -24,31 +24,8 @@ void UTDSInventoryComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	//Find init weaponsSlots Init weapon
-	for (int8 i = 0; i < WeaponSlots.Num(); i++)
-	{
-		UTDSGameInstance* myGI = Cast<UTDSGameInstance>(GetWorld()->GetGameInstance());
-		if (myGI)
-		{
-			if (!WeaponSlots[i].NameItem.IsNone())
-			{
-				FWeaponInfo Info;
-				if (myGI->GetWeaponInfoByName(WeaponSlots[i].NameItem, Info))
-				{
-					WeaponSlots[i].AdditionalInfo.Round = Info.MaxRound;
-				}
-			}
-		}	
-	}
-	MaxSlotsWeapon = WeaponSlots.Num();
-
-	if (WeaponSlots.IsValidIndex(0))
-	{
-		if (!WeaponSlots[0].NameItem.IsNone())
-		{
-			OnSwitchWeapon.Broadcast(WeaponSlots[0].NameItem, WeaponSlots[0].AdditionalInfo, 0);
-		}
-	}
+	
+	
 }
 
 // Called every frame
@@ -899,6 +876,49 @@ bool UTDSInventoryComponent::GetDropItemInfoFromInventory(int32 IndexSlot, FDrop
 		}
 	}
 	return result;
+}
+
+TArray<FWeaponSlot> UTDSInventoryComponent::GetWeaponSlots()
+{
+	return WeaponSlots;
+}
+
+TArray<FAmmoSlot> UTDSInventoryComponent::GetAmmoSlots()
+{
+	return AmmoSlots;
+}
+
+void UTDSInventoryComponent::InitInventory(TArray<FWeaponSlot> NewWeaponSlotsInfo, TArray<FAmmoSlot> NewAmmoSlotsInfo)
+{
+	WeaponSlots = NewWeaponSlotsInfo;
+	AmmoSlots = NewAmmoSlotsInfo;
+	//Find init weaponsSlots Init weapon
+	for (int8 i = 0; i < WeaponSlots.Num(); i++)
+	{
+		UTDSGameInstance* myGI = Cast<UTDSGameInstance>(GetWorld()->GetGameInstance());
+		if (myGI)
+		{
+			if (!WeaponSlots[i].NameItem.IsNone())
+			{
+				//FWeaponInfo Info;
+				//if (myGI->GetWeaponInfoByName(WeaponSlots[i].NameItem, Info))
+				//{
+					//WeaponSlots[i].AdditionalInfo.Round = Info.MaxRound;
+				//}
+				
+			}
+		}
+	}
+	MaxSlotsWeapon = WeaponSlots.Num();
+
+	if (WeaponSlots.IsValidIndex(0))
+	{
+		if (!WeaponSlots[0].NameItem.IsNone())
+		{
+			OnSwitchWeapon.Broadcast(WeaponSlots[0].NameItem, WeaponSlots[0].AdditionalInfo, 0);
+		}
+	}
+
 }
 
 #pragma optimize ("", on)

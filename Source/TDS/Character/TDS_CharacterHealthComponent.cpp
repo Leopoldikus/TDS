@@ -84,6 +84,11 @@ void UTDS_CharacterHealthComponent::RecoveryShield()
 	OnShieldChange.Broadcast(Shield, ShieldRecoveryValue);
 
 }
+
+float UTDS_CharacterHealthComponent::GetShieldValue()
+{
+	return Shield;
+}
 	
 
 

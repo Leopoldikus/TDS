@@ -44,4 +44,7 @@ public:
 	void ChangeShieldValue(float ChangeValue);
 	void CoolDownShieldEnd();
 	void RecoveryShield();
+
+	UFUNCTION(BlueprintCallable)
+	float GetShieldValue();
 };
