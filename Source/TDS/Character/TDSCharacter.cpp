@@ -525,7 +525,7 @@ void ATDSCharacter::TryAbilityEnabled()
 		UTDS_StateEffect* NewEffect = NewObject<UTDS_StateEffect>(this, AbilityEffect);
 		if (NewEffect)
 		{
-			NewEffect->InitObject(this);
+			NewEffect->InitObject(this, NAME_None);
 		}
 	}
 
@@ -620,7 +620,7 @@ float ATDSCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& D
 		AProjectileDefault* myProjectile = Cast<AProjectileDefault>(DamageCauser);
 		if (myProjectile)
 		{
-			UTypes::AddEffectBySurfaceType(this, myProjectile->ProjectileSetting.Effect, GetSurfaceType());
+			UTypes::AddEffectBySurfaceType(this, NAME_None, myProjectile->ProjectileSetting.Effect, GetSurfaceType());//to do Name_nOne for radial damage
 		}
 	}
 	return ActualDamage;

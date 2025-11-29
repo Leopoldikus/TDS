@@ -310,7 +310,7 @@ void AWeaponDefault::Fire()
 						UGameplayStatics::PlaySoundAtLocation(GetWorld(), WeaponSetting.ProjectileSetting.HitSound, Hit.ImpactPoint);
 					}
 
-					UTypes::AddEffectBySurfaceType(Hit.GetActor(), ProjectileInfo.Effect, mySurfacetype);
+					UTypes::AddEffectBySurfaceType(Hit.GetActor(),Hit.BoneName, ProjectileInfo.Effect, mySurfacetype);
 					//UTDS_StateEffect* NewEffect = NewObject<UTDS_StateEffect>(Hit.GetActor(), FName("Effect"));
 					//UGameplayStatics::ApplyDamage(Hit.GetActor(), WeaponSetting.ProjectileSetting.ProjectileDamage, 
 						//GetInstigatorController(), this, NULL);
