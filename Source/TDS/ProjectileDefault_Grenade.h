@@ -29,9 +29,10 @@ public:
 	virtual void ImpactProjectile() override;
 
 	void Explose();
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grenade")
 	bool TimerEnable = false;
 	float TimerToExplose = 0.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grenade")
 	float TimeToExplose = 5.0f;
 	
 };
