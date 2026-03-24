@@ -93,6 +93,8 @@ struct FProjectileInfo
 	float ExplodeFalloffCoef = 1.0f;
 	
 	//Timer add
+	
+
 };
 
 USTRUCT(BlueprintType)

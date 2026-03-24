@@ -35,4 +35,5 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grenade")
 	float TimeToExplose = 5.0f;
 	
+	
 };

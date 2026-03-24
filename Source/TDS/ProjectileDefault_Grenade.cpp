@@ -3,6 +3,7 @@
 #include "ProjectileDefault_Grenade.h"
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
+#include "EngineUtils.h"
 
 
 int32 DebugExplodeShow = 0;
@@ -69,9 +70,32 @@ void AProjectileDefault_Grenade::Explose()
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ProjectileSetting.ExploseSound, GetActorLocation());
 	}
 
-	TArray<AActor*> IgnoreActor;
-	UGameplayStatics::ApplyRadialDamageWithFalloff(GetWorld(), ProjectileSetting.ExploseMaxDamage, ProjectileSetting.ExploseMaxDamage * 0.2f,
-		GetActorLocation(), 1000.0f, 2000.0f, 5, NULL, IgnoreActor, this, nullptr);
+	
+	TArray<AActor*> FinalIgnoreList = ActorsToIgnore;
+	FinalIgnoreList.Add(this);
+	if (GetInstigator())
+	{
+		FinalIgnoreList.AddUnique(GetInstigator());
+	}
+
+	// Логируем для уверенности перед самым выстрелом функции урона
+	UE_LOG(LogTemp, Warning, TEXT("=== ВЗРЫВ: Игнорируем %d акторов ==="), FinalIgnoreList.Num());
+
+	// Используем ApplyRadialDamageWithFalloff для более точной настройки
+	// Если ApplyRadialDamage не работает, попробуем этот метод.
+
+	bool bApplied = UGameplayStatics::ApplyRadialDamageWithFalloff(
+		GetWorld(),
+		ProjectileSetting.ExploseMaxDamage, 10.0f, GetActorLocation(), 100.0f, 500.0f, 1.0f, UDamageType::StaticClass(), FinalIgnoreList, 
+		this,  GetInstigatorController(),          
+		ECC_Visibility                
+	);
+
+
+	
+	//TArray<AActor*> IgnoreActor;
+	//UGameplayStatics::ApplyRadialDamageWithFalloff(GetWorld(), ProjectileSetting.ExploseMaxDamage, ProjectileSetting.ExploseMaxDamage * 0.2f,
+		//GetActorLocation(), 1000.0f, 2000.0f, 5, NULL, IgnoreActor, this, nullptr);
 
 	this->Destroy();
 }

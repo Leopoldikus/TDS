@@ -29,6 +29,8 @@ public:
 	class UParticleSystemComponent* BulletFX = nullptr;
 	UPROPERTY(BlueprintReadOnly)
 	FProjectileInfo ProjectileSetting;
+	UPROPERTY(BlueprintReadWrite, Category = "Damage")
+	TArray<AActor*> ActorsToIgnore;
 
 protected:
 	// Called when the game starts or when spawned
